@@ -43,7 +43,7 @@ def mean_average_precision(
         ground_truths = []
 
         for detection in pred_boxes: # If class_pred of pred_boxes is c --> Append to detections
-            if detection[1] == c:
+            if detection[1] == c: 
                 detections.append(detection)
         
         for true_box in true_boxes: # Count class c in ground truth label
