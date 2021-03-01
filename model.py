@@ -1,5 +1,6 @@
 import torch
 import torch.nn as nn
+# Commit change 
 
 architecture_config = [ # (kernel size, num_filters, stride, padding) 
     (7,64,2,3),

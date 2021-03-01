@@ -23,6 +23,7 @@ from loss import YoloLoss
 
 seed = 123
 torch.manual_seed(seed)
+# Commit change 
 
 # Device
 
