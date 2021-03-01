@@ -12,7 +12,6 @@ from iou import intersection_over_union
 # Precision = TP/(TP+FP) : Of all bounding box predictions, what fraction was actually correct?
 # Recall = TP/(TP+FN) : Of all "target" bounding boxes, what fraction did we correctly detect?
 
-
 # Step
 
 # 1. Get "all" bounding box predictions on our test set
@@ -39,11 +38,11 @@ def mean_average_precision(
 
     for c in range(num_classes): # for just Single IoU threshold
 
-        detections = []
+        detections = [] 
         ground_truths = []
 
         for detection in pred_boxes: # If class_pred of pred_boxes is c --> Append to detections
-            if detection[1] == c: 
+            if detection[1] == c:  # detection[1] = class
                 detections.append(detection)
         
         for true_box in true_boxes: # Count class c in ground truth label
@@ -51,27 +50,30 @@ def mean_average_precision(
                 ground_truths.append(true_box)
         
         amount_bboxes = Counter([gt[0] for gt in ground_truths]) # gt[0] --> Training index, Count index of ground truth boxes
+
         # Ex
-        # img 0 has 3 bboxes
+        # img 0 has 3 bboxes (for ground truth)
         # img 1 has 5 bboxes
         # amount_bboxes(dictionary) = {0:3, 1:5}
 
         for key, val in amount_bboxes.items():
 
-            amount_bboxes[key] = torch.zeros(val)
+            amount_bboxes[key] = torch.zeros(val) # {0:3, 1:5} --> {0:torch.tensor([0,0,0]), 1: torch.tensor([0,0,0,0,0]))}
             # amount_bboxes = {0:torch.tensor([0,0,0]), 1: torch.tesnor([0,0,0,0,0])}
-        detections.sort(key = lambda x: x[2], reverse = True)
+        
+        detections.sort(key = lambda x: x[2], reverse = True) # Sort by confidence score
+        
         TP = torch.zeros((len(detections)))
         FP = torch.zeros((len(detections)))
 
-        total_true_bboxes = len(ground_truths)
+        total_true_bboxes = len(ground_truths) # Num of Ground truth bboxes
 
         for detection_idx, detection in enumerate(detections):
-            ground_truths_img = [bbox for bbox in ground_truths if bbox[0] == detection[0]]
+            ground_truths_img = [bbox for bbox in ground_truths if bbox[0] == detection[0]] # Choose bboxes in ground truth whose class is equal to current class 
             num_gts = len(ground_truths_img)
             best_iou = 0
 
-            for idx, gt in enumerate(ground_truths_img):
+            for idx, gt in enumerate(ground_truths_img): # Computate iou with gt and detections
                 iou = intersection_over_union(
                     torch.tensor(detection[3:]), #[x1,y1,x2,y2]
                     torch.tensor(gt[3:]),
@@ -93,17 +95,17 @@ def mean_average_precision(
             else:
                 FP[detection_idx] = 1
                 
-            # [1,1,0,1,0] -> cumsum -> [1,2,2,3,3]
-            TP_cumsum = torch.cumsum(TP,dim = 0)
-            FP_cumsum = torch.cumsum(FP,dim = 0)
+        # [1,1,0,1,0] -> cumsum -> [1,2,2,3,3]
+        TP_cumsum = torch.cumsum(TP,dim = 0)
+        FP_cumsum = torch.cumsum(FP,dim = 0)
 
-            recalls = TP_cumsum / (total_true_bboxes + epsilon)
-            precisions = torch.divide(TP_cumsum, (TP_cumsum + FP_cumsum + epsilon))
+        recalls = TP_cumsum / (total_true_bboxes + epsilon)
+        precisions = torch.divide(TP_cumsum, (TP_cumsum + FP_cumsum + epsilon))
 
-            precisions = torch.cat((torch.tensor([1]),precisions))
-            recalls = torch.cat((torch.tensor([0]),recalls))
-            
-            average_precisions.append(torch.trapz(precisions, recalls))
+        precisions = torch.cat((torch.tensor([1]),precisions))
+        recalls = torch.cat((torch.tensor([0]),recalls))
+        
+        average_precisions.append(torch.trapz(precisions, recalls))
 
     return sum(average_precisions) / len(average_precisions)
 
