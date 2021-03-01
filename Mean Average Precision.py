@@ -12,7 +12,7 @@ from iou import intersection_over_union
 # Precision = TP/(TP+FP) : Of all bounding box predictions, what fraction was actually correct?
 # Recall = TP/(TP+FN) : Of all "target" bounding boxes, what fraction did we correctly detect?
 
-# Step ##
+# Step 
 
 # 1. Get "all" bounding box predictions on our test set
 # 2. Sort by descending confidence score
